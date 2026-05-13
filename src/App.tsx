@@ -234,7 +234,7 @@ function App() {
       <section className="workspace">
         <div className="header">
           <div>
-            <p className="eyebrow">PDF em lote no navegador</p>
+            <p className="eyebrow">PDF no navegador</p>
             <h1>Gerador de Certificados</h1>
           </div>
           <div className="template-status">
@@ -246,102 +246,117 @@ function App() {
           </div>
         </div>
 
-        <section className="certificate-fields" aria-label="Dados do certificado">
-          <label>
-            <span>Data</span>
-            <input
-              type="text"
-              value={certificateDate}
-              onChange={(event) => setCertificateDate(event.target.value)}
-            />
-          </label>
-
-          <label>
-            <span>Texto do certificado</span>
-            <textarea
-              value={certificateText}
-              onChange={(event) => setCertificateText(event.target.value)}
-              rows={4}
-            />
-          </label>
-        </section>
-
-        <section className="manual-name" aria-label="Adicionar nome manualmente">
-          <label>
-            <span>Nome para certificado avulso</span>
-            <div className="manual-name-row">
-              <input
-                type="text"
-                value={manualName}
-                onChange={(event) => setManualName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    handleAddManualName();
-                  }
-                }}
-                placeholder="Digite o nome completo"
-              />
-              <button type="button" onClick={handleAddManualName}>
-                <Plus aria-hidden="true" />
-                Adicionar
-              </button>
-            </div>
-          </label>
-        </section>
-
-        <div className="controls">
-          <label className="upload-control">
-            <FileText aria-hidden="true" />
-            <span>Trocar PDF modelo</span>
-            <input type="file" accept="application/pdf,.pdf" onChange={handleTemplateUpload} />
-          </label>
-
-          <label className="upload-control primary">
-            <FileSpreadsheet aria-hidden="true" />
-            <span>Carregar planilha</span>
-            <input type="file" accept=".csv,.xlsx,.xls" onChange={handleSpreadsheetUpload} />
-          </label>
-        </div>
-
         <div className={`status ${status.type}`}>{status.message}</div>
 
-        <section className="names-panel" aria-label="Nomes carregados">
-          <div className="panel-header">
-            <div>
-              <h2>Nomes carregados</h2>
-              <p>{names.length} nome{names.length === 1 ? '' : 's'} no total</p>
+        <div className="app-grid">
+          <section className="setup-panel" aria-label="Dados do certificado">
+            <div className="panel-heading">
+              <div>
+                <h2>Dados do certificado</h2>
+                <p>Edite o conteúdo que será escrito no modelo.</p>
+              </div>
             </div>
-            <div className="actions">
-              <button type="button" onClick={handlePreview} disabled={!canGenerate}>
-                {isGenerating ? <Loader2 className="spin" aria-hidden="true" /> : <Eye aria-hidden="true" />}
-                Preview
-              </button>
-              <button type="button" className="primary-action" onClick={handleGenerateAll} disabled={!canGenerate}>
-                {isGenerating ? <Loader2 className="spin" aria-hidden="true" /> : <Download aria-hidden="true" />}
-                Gerar ZIP
-              </button>
-            </div>
-          </div>
 
-          {names.length > 0 ? (
-            <ul className="names-list">
-              {names.map((name, index) => (
-                <li key={`${name}-${index}`}>
-                  <span>{name}</span>
-                  <button type="button" onClick={() => removeName(index)} aria-label={`Remover ${name}`}>
-                    <Trash2 aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="empty-state">
-              <Upload aria-hidden="true" />
-              <p>A planilha deve conter uma coluna chamada <strong>name</strong> ou <strong>nome</strong>.</p>
+            <div className="certificate-fields">
+              <label>
+                <span>Data</span>
+                <input
+                  type="text"
+                  value={certificateDate}
+                  onChange={(event) => setCertificateDate(event.target.value)}
+                />
+              </label>
+
+              <label>
+                <span>Texto do certificado</span>
+                <textarea
+                  value={certificateText}
+                  onChange={(event) => setCertificateText(event.target.value)}
+                  rows={5}
+                />
+              </label>
             </div>
-          )}
-        </section>
+
+            <div className="template-tools">
+              <div>
+                <span>Modelo atual</span>
+                <strong>{isLoadingAssets ? 'Carregando...' : templateName}</strong>
+              </div>
+              <label className="upload-control compact">
+                <FileText aria-hidden="true" />
+                <span>Trocar modelo</span>
+                <input type="file" accept="application/pdf,.pdf" onChange={handleTemplateUpload} />
+              </label>
+            </div>
+          </section>
+
+          <section className="names-panel" aria-label="Nomes carregados">
+            <div className="panel-header">
+              <div>
+                <h2>Nomes</h2>
+                <p>{names.length} nome{names.length === 1 ? '' : 's'} no total</p>
+              </div>
+              <div className="actions">
+                <button type="button" onClick={handlePreview} disabled={!canGenerate}>
+                  {isGenerating ? <Loader2 className="spin" aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  Preview
+                </button>
+                <button type="button" className="primary-action" onClick={handleGenerateAll} disabled={!canGenerate}>
+                  {isGenerating ? <Loader2 className="spin" aria-hidden="true" /> : <Download aria-hidden="true" />}
+                  Gerar ZIP
+                </button>
+              </div>
+            </div>
+
+            <div className="names-tools">
+              <label className="manual-name">
+                <span>Adicionar nome</span>
+                <div className="manual-name-row">
+                  <input
+                    type="text"
+                    value={manualName}
+                    onChange={(event) => setManualName(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        handleAddManualName();
+                      }
+                    }}
+                    placeholder="Digite o nome completo"
+                  />
+                  <button type="button" onClick={handleAddManualName}>
+                    <Plus aria-hidden="true" />
+                    Adicionar
+                  </button>
+                </div>
+              </label>
+
+              <label className="upload-control primary">
+                <FileSpreadsheet aria-hidden="true" />
+                <span>Carregar planilha</span>
+                <input type="file" accept=".csv,.xlsx,.xls" onChange={handleSpreadsheetUpload} />
+              </label>
+            </div>
+
+            {names.length > 0 ? (
+              <ul className="names-list">
+                {names.map((name, index) => (
+                  <li key={`${name}-${index}`}>
+                    <span>{name}</span>
+                    <button type="button" onClick={() => removeName(index)} aria-label={`Remover ${name}`}>
+                      <Trash2 aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="empty-state">
+                <Upload aria-hidden="true" />
+                <p>Digite um nome acima ou carregue uma planilha com a coluna <strong>name</strong> ou <strong>nome</strong>.</p>
+              </div>
+            )}
+          </section>
+        </div>
       </section>
     </main>
   );

@@ -1,6 +1,6 @@
 :root {
   color: #18201d;
-  background: #eef1ed;
+  background: #f3f5f1;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -32,20 +32,20 @@ button {
 
 .app-shell {
   min-height: 100vh;
-  padding: 32px;
+  padding: 28px;
 }
 
 .workspace {
-  width: min(1080px, 100%);
+  width: min(1180px, 100%);
   margin: 0 auto;
 }
 
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .eyebrow {
@@ -64,16 +64,16 @@ p {
 
 h1 {
   margin-bottom: 0;
-  font-size: clamp(2rem, 5vw, 4.5rem);
-  line-height: 0.95;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  line-height: 1;
 }
 
 .template-status {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: min(360px, 100%);
-  padding: 16px;
+  width: min(360px, 100%);
+  padding: 14px 16px;
   border: 1px solid #cdd7d0;
   border-radius: 8px;
   background: #ffffff;
@@ -95,18 +95,62 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.controls {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.status {
   margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #cdd7d0;
+  background: #ffffff;
+}
+
+.status.success {
+  border-color: #9ac7ad;
+  color: #145a3a;
+}
+
+.status.error {
+  border-color: #e2aaa1;
+  color: #9b2b1f;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(440px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.setup-panel,
+.names-panel {
+  border: 1px solid #cdd7d0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.setup-panel {
+  padding: 20px;
+}
+
+.panel-heading {
+  margin-bottom: 18px;
+}
+
+.panel-heading h2,
+.panel-header h2 {
+  margin-bottom: 4px;
+  font-size: 1.16rem;
+}
+
+.panel-heading p,
+.panel-header p {
+  margin-bottom: 0;
+  color: #68746d;
 }
 
 .certificate-fields {
   display: grid;
-  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .certificate-fields label {
@@ -136,7 +180,7 @@ h1 {
 }
 
 .certificate-fields textarea {
-  min-height: 112px;
+  min-height: 158px;
   padding: 12px 14px;
   resize: vertical;
 }
@@ -147,11 +191,35 @@ h1 {
   box-shadow: 0 0 0 3px rgba(31, 111, 85, 0.14);
 }
 
-.manual-name {
-  margin-bottom: 16px;
+.template-tools {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #dbe3dd;
 }
 
-.manual-name label {
+.template-tools span {
+  display: block;
+  color: #68746d;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.template-tools strong {
+  display: block;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.names-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #dbe3dd;
+}
+
+.manual-name {
   display: grid;
   gap: 8px;
 }
@@ -165,7 +233,7 @@ h1 {
 .manual-name-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 10px;
 }
 
 .manual-name input {
@@ -208,6 +276,11 @@ button {
   border: 1px solid #cdd7d0;
 }
 
+.upload-control.compact {
+  min-height: 44px;
+  justify-content: flex-start;
+}
+
 .upload-control input {
   position: absolute;
   inset: 0;
@@ -232,30 +305,6 @@ button:disabled {
   opacity: 0.54;
 }
 
-.status {
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  border: 1px solid #cdd7d0;
-  background: #ffffff;
-}
-
-.status.success {
-  border-color: #9ac7ad;
-  color: #145a3a;
-}
-
-.status.error {
-  border-color: #e2aaa1;
-  color: #9b2b1f;
-}
-
-.names-panel {
-  border: 1px solid #cdd7d0;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
 .panel-header {
   display: flex;
   align-items: center;
@@ -263,16 +312,6 @@ button:disabled {
   gap: 16px;
   padding: 20px;
   border-bottom: 1px solid #dbe3dd;
-}
-
-.panel-header h2 {
-  margin-bottom: 4px;
-  font-size: 1.2rem;
-}
-
-.panel-header p {
-  margin-bottom: 0;
-  color: #68746d;
 }
 
 .actions {
@@ -285,7 +324,7 @@ button:disabled {
 .names-list {
   display: grid;
   gap: 1px;
-  max-height: 54vh;
+  max-height: 58vh;
   margin: 0;
   padding: 0;
   overflow: auto;
@@ -349,11 +388,8 @@ button:disabled {
     align-items: stretch;
   }
 
-  .controls {
-    grid-template-columns: 1fr;
-  }
-
-  .certificate-fields {
+  .app-grid,
+  .names-tools {
     grid-template-columns: 1fr;
   }
 
