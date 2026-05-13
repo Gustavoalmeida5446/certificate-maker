@@ -10,7 +10,7 @@ export type CertificateOptions = {
 export const NAME_POSITION = {
   // Ajuste estes valores se o layout do certificado mudar.
   centerXRatio: 0.65,
-  centerYRatio: 0.555,
+  centerYRatio: 0.525,
   maxWidthRatio: 0.5,
   maxFontSize: 42,
   minFontSize: 26,
@@ -24,7 +24,7 @@ type FontKitFont = {
   unitsPerEm: number;
   layout: (text: string) => {
     advanceWidth: number;
-    glyphs: Array<{ path: { toSVG: () => string } }>;
+    glyphs: Array<{ path: { commands: FontPathCommand[] } }>;
     positions: Array<{
       xAdvance: number;
       yAdvance: number;
@@ -32,6 +32,11 @@ type FontKitFont = {
       yOffset: number;
     }>;
   };
+};
+
+type FontPathCommand = {
+  command: 'moveTo' | 'lineTo' | 'quadraticCurveTo' | 'bezierCurveTo' | 'closePath';
+  args: number[];
 };
 
 export async function createCertificatePdf({
@@ -42,7 +47,7 @@ export async function createCertificatePdf({
   const pdfDoc = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
 
-  const vectorFont = fontkit.create(fontBytes) as FontKitFont;
+  const vectorFont = fontkit.create(fontBytes) as unknown as FontKitFont;
   const page = pdfDoc.getPages()[0];
 
   if (!page) {
@@ -158,7 +163,7 @@ function drawTextAsFontOutlines({
   layout.glyphs.forEach((glyph, index) => {
     const position = layout.positions[index];
 
-    page.drawSvgPath(glyph.path.toSVG(), {
+    page.drawSvgPath(toPdfSvgPath(glyph.path.commands), {
       x: cursorX + position.xOffset * scale,
       y: cursorY + position.yOffset * scale,
       scale,
@@ -172,4 +177,31 @@ function drawTextAsFontOutlines({
 
 function getFontScale(font: FontKitFont, fontSize: number): number {
   return fontSize / font.unitsPerEm;
+}
+
+function toPdfSvgPath(commands: FontPathCommand[]): string {
+  return commands
+    .map((pathCommand) => {
+      const args = flipYCoordinates(pathCommand.args);
+
+      switch (pathCommand.command) {
+        case 'moveTo':
+          return `M${args[0]} ${args[1]}`;
+        case 'lineTo':
+          return `L${args[0]} ${args[1]}`;
+        case 'quadraticCurveTo':
+          return `Q${args[0]} ${args[1]} ${args[2]} ${args[3]}`;
+        case 'bezierCurveTo':
+          return `C${args[0]} ${args[1]} ${args[2]} ${args[3]} ${args[4]} ${args[5]}`;
+        case 'closePath':
+          return 'Z';
+        default:
+          return '';
+      }
+    })
+    .join('');
+}
+
+function flipYCoordinates(args: number[]): number[] {
+  return args.map((arg, index) => (index % 2 === 0 ? arg : -arg));
 }
