@@ -63,7 +63,7 @@ A primeira aba da planilha sera lida. Linhas vazias sao ignoradas e nomes repeti
 
 Os arquivos padrao ficam em `public/`:
 
-- `public/modelo sem texto.pdf`
+- `public/modelo-mente-forte.pdf`
 - `public/Caveat-Regular.ttf`
 - `public/Cabin-Regular.ttf`
 - `public/Cabin-Bold.ttf`

@@ -1,4 +1,4 @@
-export const DEFAULT_TEMPLATE_URL = './modelo sem texto.pdf';
+export const DEFAULT_TEMPLATE_URL = './modelo-mente-forte.pdf';
 export const DEFAULT_NAME_FONT_URL = './Caveat-Regular.ttf';
 export const DEFAULT_TEXT_FONT_URL = './Cabin-Regular.ttf';
 export const DEFAULT_DATE_FONT_URL = './Cabin-Bold.ttf';

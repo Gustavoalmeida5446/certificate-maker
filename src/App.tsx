@@ -31,7 +31,7 @@ function App() {
   const [nameFontBytes, setNameFontBytes] = useState<Uint8Array | null>(null);
   const [textFontBytes, setTextFontBytes] = useState<Uint8Array | null>(null);
   const [dateFontBytes, setDateFontBytes] = useState<Uint8Array | null>(null);
-  const [templateName, setTemplateName] = useState('modelo sem texto.pdf');
+  const [templateName, setTemplateName] = useState('modelo-mente-forte.pdf');
   const [certificateDate, setCertificateDate] = useState(formatDefaultCertificateDate());
   const [certificateText, setCertificateText] = useState(DEFAULT_CERTIFICATE_TEXT);
   const [manualName, setManualName] = useState('');
