@@ -1,4 +1,4 @@
-import { PDFDocument, PDFFont, rgb } from 'pdf-lib';
+import { PDFDocument, PDFPage, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 
 export type CertificateOptions = {
@@ -10,14 +10,29 @@ export type CertificateOptions = {
 export const NAME_POSITION = {
   // Ajuste estes valores se o layout do certificado mudar.
   centerXRatio: 0.65,
-  centerYRatio: 0.54,
+  centerYRatio: 0.555,
   maxWidthRatio: 0.5,
-  maxFontSize: 64,
-  minFontSize: 30,
-  lineHeightRatio: 1.08,
+  maxFontSize: 42,
+  minFontSize: 26,
+  lineHeightRatio: 0.9,
+  splitBelowFontSize: 36,
 };
 
 const NAME_COLOR = rgb(1, 0.49, 0);
+
+type FontKitFont = {
+  unitsPerEm: number;
+  layout: (text: string) => {
+    advanceWidth: number;
+    glyphs: Array<{ path: { toSVG: () => string } }>;
+    positions: Array<{
+      xAdvance: number;
+      yAdvance: number;
+      xOffset: number;
+      yOffset: number;
+    }>;
+  };
+};
 
 export async function createCertificatePdf({
   templateBytes,
@@ -27,7 +42,7 @@ export async function createCertificatePdf({
   const pdfDoc = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
 
-  const font = await pdfDoc.embedFont(fontBytes);
+  const vectorFont = fontkit.create(fontBytes) as FontKitFont;
   const page = pdfDoc.getPages()[0];
 
   if (!page) {
@@ -36,8 +51,8 @@ export async function createCertificatePdf({
 
   const { width, height } = page.getSize();
   const maxTextWidth = width * NAME_POSITION.maxWidthRatio;
-  const lines = fitNameLines(name, font, maxTextWidth);
-  const fontSize = findFontSize(lines, font, maxTextWidth);
+  const lines = fitNameLines(name, vectorFont, maxTextWidth);
+  const fontSize = findFontSize(lines, vectorFont, maxTextWidth);
   const lineHeight = fontSize * NAME_POSITION.lineHeightRatio;
   const blockHeight = lineHeight * (lines.length - 1);
   const centerX = width * NAME_POSITION.centerXRatio;
@@ -45,24 +60,24 @@ export async function createCertificatePdf({
   const firstLineY = centerY + blockHeight / 2;
 
   lines.forEach((line, index) => {
-    const textWidth = font.widthOfTextAtSize(line, fontSize);
-    page.drawText(line, {
-      x: centerX - textWidth / 2,
+    drawTextAsFontOutlines({
+      page,
+      font: vectorFont,
+      text: line,
+      centerX,
       y: firstLineY - index * lineHeight,
-      size: fontSize,
-      font,
-      color: NAME_COLOR,
+      fontSize,
     });
   });
 
   return pdfDoc.save();
 }
 
-function fitNameLines(name: string, font: PDFFont, maxWidth: number): string[] {
+function fitNameLines(name: string, font: FontKitFont, maxWidth: number): string[] {
   const normalizedName = name.replace(/\s+/g, ' ').trim();
   const singleLineSize = findFontSize([normalizedName], font, maxWidth);
 
-  if (singleLineSize > NAME_POSITION.minFontSize) {
+  if (singleLineSize >= NAME_POSITION.splitBelowFontSize) {
     return [normalizedName];
   }
 
@@ -71,7 +86,7 @@ function fitNameLines(name: string, font: PDFFont, maxWidth: number): string[] {
 
 function splitNameInTwoLines(
   name: string,
-  font: PDFFont,
+  font: FontKitFont,
   maxWidth: number,
 ): string[] {
   const words = name.split(' ');
@@ -87,7 +102,7 @@ function splitNameInTwoLines(
     const lines = [words.slice(0, index).join(' '), words.slice(index).join(' ')];
     const size = findFontSize(lines, font, maxWidth);
     const widthDifference = Math.abs(
-      font.widthOfTextAtSize(lines[0], size) - font.widthOfTextAtSize(lines[1], size),
+      measureTextWidth(lines[0], font, size) - measureTextWidth(lines[1], font, size),
     );
     const score = NAME_POSITION.maxFontSize - size + widthDifference / 100;
 
@@ -102,11 +117,11 @@ function splitNameInTwoLines(
 
 function findFontSize(
   lines: string[],
-  font: PDFFont,
+  font: FontKitFont,
   maxWidth: number,
 ): number {
   for (let size = NAME_POSITION.maxFontSize; size >= NAME_POSITION.minFontSize; size -= 1) {
-    const fits = lines.every((line) => font.widthOfTextAtSize(line, size) <= maxWidth);
+    const fits = lines.every((line) => measureTextWidth(line, font, size) <= maxWidth);
 
     if (fits) {
       return size;
@@ -114,4 +129,47 @@ function findFontSize(
   }
 
   return NAME_POSITION.minFontSize;
+}
+
+function measureTextWidth(text: string, font: FontKitFont, fontSize: number): number {
+  return font.layout(text).advanceWidth * getFontScale(font, fontSize);
+}
+
+function drawTextAsFontOutlines({
+  page,
+  font,
+  text,
+  centerX,
+  y,
+  fontSize,
+}: {
+  page: PDFPage;
+  font: FontKitFont;
+  text: string;
+  centerX: number;
+  y: number;
+  fontSize: number;
+}) {
+  const layout = font.layout(text);
+  const scale = getFontScale(font, fontSize);
+  let cursorX = centerX - (layout.advanceWidth * scale) / 2;
+  let cursorY = y;
+
+  layout.glyphs.forEach((glyph, index) => {
+    const position = layout.positions[index];
+
+    page.drawSvgPath(glyph.path.toSVG(), {
+      x: cursorX + position.xOffset * scale,
+      y: cursorY + position.yOffset * scale,
+      scale,
+      color: NAME_COLOR,
+    });
+
+    cursorX += position.xAdvance * scale;
+    cursorY += position.yAdvance * scale;
+  });
+}
+
+function getFontScale(font: FontKitFont, fontSize: number): number {
+  return fontSize / font.unitsPerEm;
 }
