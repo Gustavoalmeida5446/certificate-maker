@@ -70,6 +70,7 @@ A posicao e o tamanho do nome ficam em `src/lib/pdf.ts`, no objeto `NAME_POSITIO
 
 Principais ajustes:
 
+- `centerXRatio`: centro horizontal do nome na area branca do certificado
 - `centerYRatio`: altura vertical do centro do nome no certificado
 - `maxWidthRatio`: largura maxima permitida para o texto
 - `maxFontSize`: maior tamanho de fonte usado

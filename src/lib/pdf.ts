@@ -9,12 +9,15 @@ export type CertificateOptions = {
 
 export const NAME_POSITION = {
   // Ajuste estes valores se trocar o PDF modelo.
-  centerYRatio: 0.43,
-  maxWidthRatio: 0.78,
-  maxFontSize: 54,
-  minFontSize: 28,
+  centerXRatio: 0.65,
+  centerYRatio: 0.54,
+  maxWidthRatio: 0.5,
+  maxFontSize: 64,
+  minFontSize: 30,
   lineHeightRatio: 1.08,
 };
+
+const NAME_COLOR = rgb(1, 0.49, 0);
 
 export async function createCertificatePdf({
   templateBytes,
@@ -37,17 +40,18 @@ export async function createCertificatePdf({
   const fontSize = findFontSize(lines, font, maxTextWidth);
   const lineHeight = fontSize * NAME_POSITION.lineHeightRatio;
   const blockHeight = lineHeight * (lines.length - 1);
+  const centerX = width * NAME_POSITION.centerXRatio;
   const centerY = height * NAME_POSITION.centerYRatio;
   const firstLineY = centerY + blockHeight / 2;
 
   lines.forEach((line, index) => {
     const textWidth = font.widthOfTextAtSize(line, fontSize);
     page.drawText(line, {
-      x: (width - textWidth) / 2,
+      x: centerX - textWidth / 2,
       y: firstLineY - index * lineHeight,
       size: fontSize,
       font,
-      color: rgb(0.08, 0.08, 0.08),
+      color: NAME_COLOR,
     });
   });
 
