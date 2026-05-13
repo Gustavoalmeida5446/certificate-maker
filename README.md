@@ -40,6 +40,10 @@ Para conferir o build localmente:
 npm run preview
 ```
 
+## Nomes dos certificados
+
+Voce pode adicionar um nome manualmente pela tela para gerar um certificado avulso, ou carregar uma planilha para gerar varios certificados.
+
 ## Formato da planilha
 
 A planilha deve ter uma coluna chamada `name` ou `nome`.
@@ -93,13 +97,13 @@ Depois de alterar, rode `npm run build` para validar.
 ## Como gerar preview
 
 1. Abra a aplicacao.
-2. Carregue uma planilha CSV, XLSX ou XLS com a coluna `name` ou `nome`.
+2. Digite um nome manualmente ou carregue uma planilha CSV, XLSX ou XLS com a coluna `name` ou `nome`.
 3. Clique em `Preview`.
 4. O navegador baixara um PDF de exemplo usando o primeiro nome da lista.
 
 ## Como gerar todos os certificados
 
-1. Carregue a planilha.
+1. Digite um nome manualmente ou carregue a planilha.
 2. Remova nomes da lista, se necessario.
 3. Clique em `Gerar ZIP`.
 4. O navegador baixara `certificados.zip` com um PDF para cada nome.

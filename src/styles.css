@@ -147,6 +147,43 @@ h1 {
   box-shadow: 0 0 0 3px rgba(31, 111, 85, 0.14);
 }
 
+.manual-name {
+  margin-bottom: 16px;
+}
+
+.manual-name label {
+  display: grid;
+  gap: 8px;
+}
+
+.manual-name span {
+  color: #5d6b62;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.manual-name-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.manual-name input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #cdd7d0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #18201d;
+  outline: none;
+}
+
+.manual-name input:focus {
+  border-color: #1f6f55;
+  box-shadow: 0 0 0 3px rgba(31, 111, 85, 0.14);
+}
+
 .upload-control,
 button {
   display: inline-flex;
@@ -317,6 +354,10 @@ button:disabled {
   }
 
   .certificate-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-name-row {
     grid-template-columns: 1fr;
   }
 

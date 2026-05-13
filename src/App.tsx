@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileCheck2, FileSpreadsheet, FileText, Loader2, Trash2, Upload } from 'lucide-react';
+import { Download, Eye, FileCheck2, FileSpreadsheet, FileText, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import {
   DEFAULT_DATE_FONT_URL,
@@ -20,7 +20,7 @@ type AppStatus = {
 
 const defaultStatus: AppStatus = {
   type: 'info',
-  message: 'Carregue uma planilha CSV ou XLSX para começar.',
+  message: 'Digite um nome ou carregue uma planilha CSV/XLSX para começar.',
 };
 
 const DEFAULT_CERTIFICATE_TEXT =
@@ -34,6 +34,7 @@ function App() {
   const [templateName, setTemplateName] = useState('modelo sem texto.pdf');
   const [certificateDate, setCertificateDate] = useState(formatDefaultCertificateDate());
   const [certificateText, setCertificateText] = useState(DEFAULT_CERTIFICATE_TEXT);
+  const [manualName, setManualName] = useState('');
   const [names, setNames] = useState<string[]>([]);
   const [status, setStatus] = useState<AppStatus>(defaultStatus);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
@@ -128,6 +129,24 @@ function App() {
     } finally {
       event.target.value = '';
     }
+  }
+
+  function handleAddManualName() {
+    const name = manualName.replace(/\s+/g, ' ').trim();
+
+    if (!name) {
+      setStatus({ type: 'error', message: 'Digite um nome antes de adicionar.' });
+      return;
+    }
+
+    if (names.some((currentName) => normalizeName(currentName) === normalizeName(name))) {
+      setStatus({ type: 'error', message: 'Esse nome ja esta na lista.' });
+      return;
+    }
+
+    setNames((currentNames) => [...currentNames, name]);
+    setManualName('');
+    setStatus({ type: 'success', message: `${name} adicionado a lista.` });
   }
 
   function removeName(indexToRemove: number) {
@@ -247,6 +266,30 @@ function App() {
           </label>
         </section>
 
+        <section className="manual-name" aria-label="Adicionar nome manualmente">
+          <label>
+            <span>Nome para certificado avulso</span>
+            <div className="manual-name-row">
+              <input
+                type="text"
+                value={manualName}
+                onChange={(event) => setManualName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleAddManualName();
+                  }
+                }}
+                placeholder="Digite o nome completo"
+              />
+              <button type="button" onClick={handleAddManualName}>
+                <Plus aria-hidden="true" />
+                Adicionar
+              </button>
+            </div>
+          </label>
+        </section>
+
         <div className="controls">
           <label className="upload-control">
             <FileText aria-hidden="true" />
@@ -320,6 +363,15 @@ function formatDefaultCertificateDate(): string {
   }).format(new Date());
 
   return `Pará de Minas, ${formattedDate}`;
+}
+
+function normalizeName(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 }
 
 export default App;
