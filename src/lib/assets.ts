@@ -10,7 +10,3 @@ export async function fetchAssetBytes(url: string): Promise<Uint8Array> {
 
   return new Uint8Array(await response.arrayBuffer());
 }
-
-export async function readFileBytes(file: File): Promise<Uint8Array> {
-  return new Uint8Array(await file.arrayBuffer());
-}

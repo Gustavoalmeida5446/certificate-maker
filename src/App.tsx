@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { Download, Eye, FileCheck2, FileSpreadsheet, FileText, Loader2, Trash2, Upload } from 'lucide-react';
+import { Download, Eye, FileCheck2, FileSpreadsheet, Loader2, Trash2, Upload } from 'lucide-react';
 import { saveAs } from 'file-saver';
-import { DEFAULT_FONT_URL, DEFAULT_TEMPLATE_URL, fetchAssetBytes, readFileBytes } from './lib/assets';
+import { DEFAULT_FONT_URL, DEFAULT_TEMPLATE_URL, fetchAssetBytes } from './lib/assets';
 import { createCertificatePdf } from './lib/pdf';
 import { readNamesFromSpreadsheet } from './lib/spreadsheet';
 import { createCertificatesZip, safePdfFileName } from './lib/zip';
@@ -19,7 +19,6 @@ const defaultStatus: AppStatus = {
 function App() {
   const [templateBytes, setTemplateBytes] = useState<Uint8Array | null>(null);
   const [fontBytes, setFontBytes] = useState<Uint8Array | null>(null);
-  const [templateName, setTemplateName] = useState('certificado mente forte.pdf');
   const [names, setNames] = useState<string[]>([]);
   const [status, setStatus] = useState<AppStatus>(defaultStatus);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
@@ -52,24 +51,6 @@ function App() {
 
     loadDefaultAssets();
   }, []);
-
-  async function handleTemplateUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    try {
-      setTemplateBytes(await readFileBytes(file));
-      setTemplateName(file.name);
-      setStatus({ type: 'success', message: 'PDF modelo atualizado.' });
-    } catch (error) {
-      setStatus({ type: 'error', message: getErrorMessage(error, 'Erro ao ler o PDF modelo.') });
-    } finally {
-      event.target.value = '';
-    }
-  }
 
   async function handleSpreadsheetUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -163,18 +144,12 @@ function App() {
             <FileCheck2 aria-hidden="true" />
             <div>
               <span>PDF modelo</span>
-              <strong>{isLoadingAssets ? 'Carregando...' : templateName}</strong>
+              <strong>{isLoadingAssets ? 'Carregando...' : 'certificado mente forte.pdf'}</strong>
             </div>
           </div>
         </div>
 
         <div className="controls">
-          <label className="upload-control">
-            <FileText aria-hidden="true" />
-            <span>Trocar PDF modelo</span>
-            <input type="file" accept="application/pdf,.pdf" onChange={handleTemplateUpload} />
-          </label>
-
           <label className="upload-control primary">
             <FileSpreadsheet aria-hidden="true" />
             <span>Carregar planilha</span>

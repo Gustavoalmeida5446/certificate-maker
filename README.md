@@ -62,7 +62,7 @@ Os arquivos padrao ficam em `public/`:
 - `public/certificado mente forte.pdf`
 - `public/Caveat-Regular.ttf`
 
-Na interface, o PDF modelo pode ser trocado manualmente antes de gerar os certificados. A fonte usada continua sendo a TTF local.
+O PDF modelo e a fonte sao carregados automaticamente pela aplicacao.
 
 ## Ajustar a posicao do nome
 

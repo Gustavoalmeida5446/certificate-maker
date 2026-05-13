@@ -8,7 +8,7 @@ export type CertificateOptions = {
 };
 
 export const NAME_POSITION = {
-  // Ajuste estes valores se trocar o PDF modelo.
+  // Ajuste estes valores se o layout do certificado mudar.
   centerXRatio: 0.65,
   centerYRatio: 0.54,
   maxWidthRatio: 0.5,

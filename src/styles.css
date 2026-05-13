@@ -96,7 +96,7 @@ h1 {
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(220px, 360px);
   gap: 12px;
   margin-bottom: 16px;
 }
