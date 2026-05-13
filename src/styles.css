@@ -21,7 +21,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -99,6 +100,51 @@ h1 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.certificate-fields {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.certificate-fields label {
+  display: grid;
+  gap: 8px;
+}
+
+.certificate-fields span {
+  color: #5d6b62;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.certificate-fields input,
+.certificate-fields textarea {
+  width: 100%;
+  border: 1px solid #cdd7d0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #18201d;
+  outline: none;
+}
+
+.certificate-fields input {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.certificate-fields textarea {
+  min-height: 112px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.certificate-fields input:focus,
+.certificate-fields textarea:focus {
+  border-color: #1f6f55;
+  box-shadow: 0 0 0 3px rgba(31, 111, 85, 0.14);
 }
 
 .upload-control,
@@ -267,6 +313,10 @@ button:disabled {
   }
 
   .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .certificate-fields {
     grid-template-columns: 1fr;
   }
 

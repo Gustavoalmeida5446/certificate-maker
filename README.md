@@ -59,14 +59,25 @@ A primeira aba da planilha sera lida. Linhas vazias sao ignoradas e nomes repeti
 
 Os arquivos padrao ficam em `public/`:
 
-- `public/certificado mente forte.pdf`
+- `public/modelo sem texto.pdf`
 - `public/Caveat-Regular.ttf`
+- `public/Cabin-Regular.ttf`
+- `public/Cabin-Bold.ttf`
 
-O PDF modelo e a fonte sao carregados automaticamente pela aplicacao. Se precisar, o PDF modelo tambem pode ser trocado pela interface antes de gerar os certificados.
+O PDF modelo e as fontes sao carregados automaticamente pela aplicacao. Se precisar, o PDF modelo tambem pode ser trocado pela interface antes de gerar os certificados.
 
-## Ajustar a posicao do nome
+## Texto e data do certificado
 
-A posicao e o tamanho do nome ficam em `src/lib/pdf.ts`, no objeto `NAME_POSITION`.
+A tela possui campos editaveis para:
+
+- data do certificado, escrita com `Cabin-Bold.ttf`
+- texto descritivo do certificado, escrito com `Cabin-Regular.ttf`
+
+O texto ja abre preenchido com o padrao do Workshop Metodo Mente Forte. A data abre com a data atual no formato `Pará de Minas, 13 de maio de 2026`.
+
+## Ajustar posicoes no PDF
+
+A posicao e o tamanho do nome ficam em `src/lib/pdf.ts`, no objeto `NAME_POSITION`. A posicao do texto descritivo fica em `BODY_TEXT_STYLE`, e a data fica em `DATE_TEXT_STYLE`.
 
 Principais ajustes:
 

@@ -1,7 +1,14 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { Download, Eye, FileCheck2, FileSpreadsheet, FileText, Loader2, Trash2, Upload } from 'lucide-react';
 import { saveAs } from 'file-saver';
-import { DEFAULT_FONT_URL, DEFAULT_TEMPLATE_URL, fetchAssetBytes, readFileBytes } from './lib/assets';
+import {
+  DEFAULT_DATE_FONT_URL,
+  DEFAULT_NAME_FONT_URL,
+  DEFAULT_TEMPLATE_URL,
+  DEFAULT_TEXT_FONT_URL,
+  fetchAssetBytes,
+  readFileBytes,
+} from './lib/assets';
 import { createCertificatePdf } from './lib/pdf';
 import { readNamesFromSpreadsheet } from './lib/spreadsheet';
 import { createCertificatesZip, safePdfFileName } from './lib/zip';
@@ -16,30 +23,60 @@ const defaultStatus: AppStatus = {
   message: 'Carregue uma planilha CSV ou XLSX para começar.',
 };
 
+const DEFAULT_CERTIFICATE_TEXT =
+  'concluiu o Workshop Método Mente Forte, com carga horária de 8 horas, demonstrando comprometimento e dedicação na busca pelo desenvolvimento pessoal e profissional através do aprimoramento do autoconhecimento, inteligência emocional e comunicação.';
+
 function App() {
   const [templateBytes, setTemplateBytes] = useState<Uint8Array | null>(null);
-  const [fontBytes, setFontBytes] = useState<Uint8Array | null>(null);
-  const [templateName, setTemplateName] = useState('certificado mente forte.pdf');
+  const [nameFontBytes, setNameFontBytes] = useState<Uint8Array | null>(null);
+  const [textFontBytes, setTextFontBytes] = useState<Uint8Array | null>(null);
+  const [dateFontBytes, setDateFontBytes] = useState<Uint8Array | null>(null);
+  const [templateName, setTemplateName] = useState('modelo sem texto.pdf');
+  const [certificateDate, setCertificateDate] = useState(formatDefaultCertificateDate());
+  const [certificateText, setCertificateText] = useState(DEFAULT_CERTIFICATE_TEXT);
   const [names, setNames] = useState<string[]>([]);
   const [status, setStatus] = useState<AppStatus>(defaultStatus);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const canGenerate = useMemo(
-    () => Boolean(templateBytes && fontBytes && names.length > 0 && !isGenerating),
-    [fontBytes, isGenerating, names.length, templateBytes],
+    () =>
+      Boolean(
+        templateBytes &&
+          nameFontBytes &&
+          textFontBytes &&
+          dateFontBytes &&
+          names.length > 0 &&
+          certificateDate.trim() &&
+          certificateText.trim() &&
+          !isGenerating,
+      ),
+    [
+      certificateDate,
+      certificateText,
+      dateFontBytes,
+      isGenerating,
+      nameFontBytes,
+      names.length,
+      templateBytes,
+      textFontBytes,
+    ],
   );
 
   useEffect(() => {
     async function loadDefaultAssets() {
       try {
-        const [defaultTemplate, defaultFont] = await Promise.all([
+        const [defaultTemplate, defaultNameFont, defaultTextFont, defaultDateFont] = await Promise.all([
           fetchAssetBytes(DEFAULT_TEMPLATE_URL),
-          fetchAssetBytes(DEFAULT_FONT_URL),
+          fetchAssetBytes(DEFAULT_NAME_FONT_URL),
+          fetchAssetBytes(DEFAULT_TEXT_FONT_URL),
+          fetchAssetBytes(DEFAULT_DATE_FONT_URL),
         ]);
 
         setTemplateBytes(defaultTemplate);
-        setFontBytes(defaultFont);
+        setNameFontBytes(defaultNameFont);
+        setTextFontBytes(defaultTextFont);
+        setDateFontBytes(defaultDateFont);
       } catch (error) {
         setStatus({
           type: 'error',
@@ -99,8 +136,13 @@ function App() {
   }
 
   async function handlePreview() {
-    if (!templateBytes || !fontBytes || names.length === 0) {
-      setStatus({ type: 'error', message: 'Carregue o PDF modelo e pelo menos um nome.' });
+    if (!templateBytes || !nameFontBytes || !textFontBytes || !dateFontBytes || names.length === 0) {
+      setStatus({ type: 'error', message: 'Carregue o PDF modelo, as fontes e pelo menos um nome.' });
+      return;
+    }
+
+    if (!certificateDate.trim() || !certificateText.trim()) {
+      setStatus({ type: 'error', message: 'Preencha a data e o texto do certificado.' });
       return;
     }
 
@@ -110,8 +152,12 @@ function App() {
     try {
       const pdfBytes = await createCertificatePdf({
         templateBytes,
-        fontBytes,
+        nameFontBytes,
+        textFontBytes,
+        dateFontBytes,
         name: names[0],
+        certificateDate: certificateDate.trim(),
+        certificateText: certificateText.trim(),
       });
 
       const blob = new Blob([toArrayBuffer(pdfBytes)], { type: 'application/pdf' });
@@ -125,8 +171,13 @@ function App() {
   }
 
   async function handleGenerateAll() {
-    if (!templateBytes || !fontBytes || names.length === 0) {
-      setStatus({ type: 'error', message: 'Carregue o PDF modelo e pelo menos um nome.' });
+    if (!templateBytes || !nameFontBytes || !textFontBytes || !dateFontBytes || names.length === 0) {
+      setStatus({ type: 'error', message: 'Carregue o PDF modelo, as fontes e pelo menos um nome.' });
+      return;
+    }
+
+    if (!certificateDate.trim() || !certificateText.trim()) {
+      setStatus({ type: 'error', message: 'Preencha a data e o texto do certificado.' });
       return;
     }
 
@@ -137,7 +188,15 @@ function App() {
       const certificates = await Promise.all(
         names.map(async (name) => ({
           fileName: safePdfFileName(name),
-          bytes: await createCertificatePdf({ templateBytes, fontBytes, name }),
+          bytes: await createCertificatePdf({
+            templateBytes,
+            nameFontBytes,
+            textFontBytes,
+            dateFontBytes,
+            name,
+            certificateDate: certificateDate.trim(),
+            certificateText: certificateText.trim(),
+          }),
         })),
       );
       const zipBlob = await createCertificatesZip(certificates);
@@ -167,6 +226,26 @@ function App() {
             </div>
           </div>
         </div>
+
+        <section className="certificate-fields" aria-label="Dados do certificado">
+          <label>
+            <span>Data</span>
+            <input
+              type="text"
+              value={certificateDate}
+              onChange={(event) => setCertificateDate(event.target.value)}
+            />
+          </label>
+
+          <label>
+            <span>Texto do certificado</span>
+            <textarea
+              value={certificateText}
+              onChange={(event) => setCertificateText(event.target.value)}
+              rows={4}
+            />
+          </label>
+        </section>
 
         <div className="controls">
           <label className="upload-control">
@@ -231,6 +310,16 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
+function formatDefaultCertificateDate(): string {
+  const formattedDate = new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+
+  return `Pará de Minas, ${formattedDate}`;
 }
 
 export default App;

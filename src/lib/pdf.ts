@@ -1,10 +1,14 @@
-import { PDFDocument, PDFPage, rgb } from 'pdf-lib';
+import { PDFDocument, PDFFont, PDFPage, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 
 export type CertificateOptions = {
   templateBytes: Uint8Array;
-  fontBytes: Uint8Array;
+  nameFontBytes: Uint8Array;
+  textFontBytes: Uint8Array;
+  dateFontBytes: Uint8Array;
   name: string;
+  certificateText: string;
+  certificateDate: string;
 };
 
 export const NAME_POSITION = {
@@ -19,6 +23,21 @@ export const NAME_POSITION = {
 };
 
 const NAME_COLOR = rgb(1, 0.49, 0);
+const BODY_TEXT_COLOR = rgb(0, 0.16, 0.24);
+
+const BODY_TEXT_STYLE = {
+  centerXRatio: 0.65,
+  firstLineYRatio: 0.455,
+  maxWidthRatio: 0.55,
+  fontSize: 13.5,
+  lineHeightRatio: 1.36,
+};
+
+const DATE_TEXT_STYLE = {
+  centerXRatio: 0.65,
+  yRatio: 0.267,
+  fontSize: 14,
+};
 
 type FontKitFont = {
   unitsPerEm: number;
@@ -41,13 +60,19 @@ type FontPathCommand = {
 
 export async function createCertificatePdf({
   templateBytes,
-  fontBytes,
+  nameFontBytes,
+  textFontBytes,
+  dateFontBytes,
   name,
+  certificateText,
+  certificateDate,
 }: CertificateOptions): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
 
-  const vectorFont = fontkit.create(fontBytes) as unknown as FontKitFont;
+  const vectorFont = fontkit.create(nameFontBytes) as unknown as FontKitFont;
+  const textFont = await pdfDoc.embedFont(textFontBytes);
+  const dateFont = await pdfDoc.embedFont(dateFontBytes);
   const page = pdfDoc.getPages()[0];
 
   if (!page) {
@@ -73,6 +98,22 @@ export async function createCertificatePdf({
       y: firstLineY - index * lineHeight,
       fontSize,
     });
+  });
+
+  drawBodyText({
+    page,
+    font: textFont,
+    text: certificateText,
+    pageWidth: width,
+    pageHeight: height,
+  });
+  drawCenteredText({
+    page,
+    font: dateFont,
+    text: certificateDate,
+    centerX: width * DATE_TEXT_STYLE.centerXRatio,
+    y: height * DATE_TEXT_STYLE.yRatio,
+    fontSize: DATE_TEXT_STYLE.fontSize,
   });
 
   return pdfDoc.save();
@@ -177,6 +218,101 @@ function drawTextAsFontOutlines({
 
 function getFontScale(font: FontKitFont, fontSize: number): number {
   return fontSize / font.unitsPerEm;
+}
+
+function drawBodyText({
+  page,
+  font,
+  text,
+  pageWidth,
+  pageHeight,
+}: {
+  page: PDFPage;
+  font: PDFFont;
+  text: string;
+  pageWidth: number;
+  pageHeight: number;
+}) {
+  const centerX = pageWidth * BODY_TEXT_STYLE.centerXRatio;
+  const maxWidth = pageWidth * BODY_TEXT_STYLE.maxWidthRatio;
+  const lines = wrapText(text, font, BODY_TEXT_STYLE.fontSize, maxWidth);
+  const lineHeight = BODY_TEXT_STYLE.fontSize * BODY_TEXT_STYLE.lineHeightRatio;
+  const firstLineY = pageHeight * BODY_TEXT_STYLE.firstLineYRatio;
+
+  lines.forEach((line, index) => {
+    drawCenteredText({
+      page,
+      font,
+      text: line,
+      centerX,
+      y: firstLineY - index * lineHeight,
+      fontSize: BODY_TEXT_STYLE.fontSize,
+    });
+  });
+}
+
+function drawCenteredText({
+  page,
+  font,
+  text,
+  centerX,
+  y,
+  fontSize,
+}: {
+  page: PDFPage;
+  font: PDFFont;
+  text: string;
+  centerX: number;
+  y: number;
+  fontSize: number;
+}) {
+  const textWidth = font.widthOfTextAtSize(text, fontSize);
+
+  page.drawText(text, {
+    x: centerX - textWidth / 2,
+    y,
+    size: fontSize,
+    font,
+    color: BODY_TEXT_COLOR,
+  });
+}
+
+function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
+  return text
+    .split(/\r?\n/)
+    .flatMap((paragraph) => wrapParagraph(paragraph.trim(), font, fontSize, maxWidth))
+    .filter(Boolean);
+}
+
+function wrapParagraph(paragraph: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
+  if (!paragraph) {
+    return [];
+  }
+
+  const lines: string[] = [];
+  const words = paragraph.split(/\s+/);
+  let currentLine = '';
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (font.widthOfTextAtSize(nextLine, fontSize) <= maxWidth) {
+      currentLine = nextLine;
+      return;
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    currentLine = word;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines;
 }
 
 function toPdfSvgPath(commands: FontPathCommand[]): string {
